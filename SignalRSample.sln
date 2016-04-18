@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample-1 实时提醒", "Sample-1 实时提醒", "{2A62FB46-EAA5-42F8-BBE2-38FBB3D410F9}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleWeb-1 实时提醒", "SampleWeb-1 实时提醒", "{2A62FB46-EAA5-42F8-BBE2-38FBB3D410F9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-2", "Sample-2\Sample-2.csproj", "{6DF67413-16CA-413C-AF3B-3F90F422B493}"
 EndProject
