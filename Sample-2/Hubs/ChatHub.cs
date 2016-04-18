@@ -27,15 +27,11 @@ namespace Sample_2.Hubs
         /// 每个聊天用户退出时触发
         /// </summary>
         /// <returns></returns>
-        public override Task OnReconnected()
+        public override Task OnDisconnected(bool stopCalled)
         {
-            var userInfos = Manager.UserInfos.Where(x => x.Uid == Context.ConnectionId);
-            foreach (var item in userInfos)
-            {
-                Manager.UserInfos.Remove(item);
-            }
+            Manager.UserInfos.RemoveAll(x => x.Uid == Context.ConnectionId);
             GetUserInfos();
-            return base.OnReconnected();
+            return base.OnDisconnected(stopCalled);
         }
 
         /// <summary>
@@ -50,7 +46,8 @@ namespace Sample_2.Hubs
         /// 设置自己的昵称
         /// </summary>
         /// <param name="nickName"></param>
-        public void SetUserInfoToNickName(string nickName)
+        /// <returns>json</returns>
+        public string SetUserInfoToNickName(string nickName)
         {
             var userInfo = Manager.UserInfos.SingleOrDefault(x => x.Uid == Context.ConnectionId);
             if (userInfo != null && !string.IsNullOrWhiteSpace(userInfo.Uid))
@@ -58,6 +55,7 @@ namespace Sample_2.Hubs
                 userInfo.NickName = nickName;
             }
             GetUserInfos();
+            return Newtonsoft.Json.JsonConvert.SerializeObject(userInfo);
         }
 
         /// <summary>

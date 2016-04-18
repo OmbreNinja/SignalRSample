@@ -15,13 +15,31 @@
     <script src="~/signalr/hubs"></script>
     <style>
         body {
-            font-family: 'Microsoft YaHei';
+            font-family: 'Microsoft YaHei',微软雅黑;
             font-size: 16px;
+        }
+
+        ul, li {
+            list-style: none;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            border-radius: 10px;
+            background-color: rgba(25, 147, 147, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            background-color: rgba(25, 147, 147, 0.2);
         }
 
         #userInfoList {
             cursor: pointer;
-            text-decoration-style: none;
+            float:left;
         }
 
         .clearFloat {
@@ -94,7 +112,7 @@
                 background: #FFDEAD;
                 line-height: 20px;
                 letter-spacing: 1px;
-                font-family: 'Microsoft YaHei';
+                font-family: 'Microsoft YaHei',微软雅黑;
                 outline: none;
             }
 
@@ -133,6 +151,20 @@
                 float: left;
             }
 
+            .whisperWindow .closeWindow {
+                float: right;
+                width: 30px;
+                height: 30px;
+                line-height: 30px;
+                color: black;
+                cursor: pointer;
+                text-align: center;
+            }
+
+                .whisperWindow .closeWindow:hover {
+                    color: red;
+                }
+
             .whisperWindow .message-content {
                 width: 100%;
                 height: 400px;
@@ -157,7 +189,7 @@
                 background: #FFDEAD;
                 line-height: 20px;
                 letter-spacing: 1px;
-                font-family: 'Microsoft YaHei';
+                font-family: 'Microsoft YaHei',微软雅黑;
                 outline: none;
             }
     </style>
@@ -204,6 +236,7 @@
         <div class="whisper-header">
             <div class="headerImage">头像</div>
             <div class="nickName"></div>
+            <div class="closeWindow">X</div>
             <div class="clearFloat"></div>
         </div>
         <div class="whisper-content">
@@ -224,7 +257,7 @@
             chatHub.client.addNewMessage = function (name, msg) {
                 $('.message-content ul').append('<li><strong>' + name
                     + '</strong>: ' + msg + '</li>');
-                $('.message-content').scrollTop($('.message-content').outerHeight());
+                $('.message-content').scrollTop(9999999);
             }
 
             //刷新页面用户列表
@@ -238,7 +271,7 @@
                 $("#userInfoList").html(strHtml);
 
                 $("#userInfoList li").each(function (i, item) {
-                    $(this).data("userInfo", userInfosJson[i]);
+                    $(this).data("TargetUserInfo", userInfosJson[i]);
                 });
             }
 
@@ -250,42 +283,59 @@
             //启动SignalR
             $.connection.hub.start().done(function () {
                 //设置昵称信息
-                chatHub.server.setUserInfoToNickName($("#hidNickName").val());
+                chatHub.server.setUserInfoToNickName($("#hidNickName").val()).done(function (strUserInfo) {
+                    var $userInfo = JSON.parse(strUserInfo);
+                    if ($userInfo) {
+                        $("#hidNickName").data("CurrentUserInfo", $userInfo);
+                    }
+                    else {
+                        alert("start signalr error!");
+                    }
+                });
             });
 
             //绑定 用户列表项 的单击事件
             $("#userInfoList").on("dblclick", "li", function () {
                 //弹出用户私聊窗口
-                showWhisperWindow($(this).data("userInfo"));
+                showWhisperWindow($(this).data("TargetUserInfo"));
             });
 
             //判断是否私聊窗口是否开启  如果没有开启则创建一个聊天窗口
-            function showWhisperWindow(userInfo) {
-                var $whisperWindow = $("#" + userInfo.Uid);
+            function showWhisperWindow(targetUserInfo, msg) {
+                var $whisperWindow = $("#" + targetUserInfo.Uid);
                 if ($whisperWindow.length <= 0) {
-                    $("<div></div>", { "id": userInfo.Uid, "class": "whisperWindow" }).css({ "top": $("#whisperWindows").children().length * 100, "right": $("#whisperWindows").children().length * 100 }).append($(".whisperWindowTemplate").html()).appendTo($("#whisperWindows"));
-                    $("#" + userInfo.Uid)
-                        .data("userInfo", userInfo);
-                    $(".nickName", $("#" + userInfo.Uid)).text(userInfo.NickName);
+                    $("<div></div>", { "id": targetUserInfo.Uid, "class": "whisperWindow" }).css({ "top": $("#whisperWindows").children().length * 100, "right": $("#whisperWindows").children().length * 100 }).append($(".whisperWindowTemplate").html()).appendTo($("#whisperWindows"));
+                    $whisperWindow = $("#" + targetUserInfo.Uid);
+                    $whisperWindow.data("TargetUserInfo", targetUserInfo);
+                    $(".nickName", $whisperWindow).text(targetUserInfo.NickName);
                 }
-
-                $("#" + userInfo.Uid + ".whisperWindow").show();
+                $whisperWindow.show();
+                showMessage($whisperWindow, targetUserInfo, msg);
                 setZIndex($whisperWindow);
-                $('.txtWhisperSend', $whisperWindow).focus();
+            }
+
+            ///显示消息
+            //windowObj:显示消息的JQuery窗体对象
+            //msg:消息
+            function showMessage(windowObj, userInfo, msg) {
+                if (msg !== undefined)
+                    $('.message-content ul', windowObj).append('<li><strong>' + userInfo.NickName + '</strong>: ' + msg + '</li>');
+                $('.message-content', windowObj).scrollTop(9999999);
+                $('.txtWhisperSend', windowObj).val("").focus();
             }
 
             //回车发送消息
             $("#whisperWindows").on("keydown", ".whisperWindow", function (e) {
                 var $this = $(this);
                 if (e.keyCode == 13 && $(".txtWhisperSend", $this).is(":focus")) {
-                    var userInfo = $this.data("userInfo");
-                    chatHub.server.sendByUid(userInfo.Uid, $('.txtWhisperSend', $this).val());
-                    $('.message-content ul', $this).append('<li><strong>' + $("#hidNickName").val() + '</strong>: ' + $('.txtWhisperSend', $this).val() + '</li>');
-                    $('.message-content', $this).scrollTop($('.message-content', $this).outerHeight());
-                    $('.txtWhisperSend', $this).val('').focus();
+                    var targetUserInfo = $this.data("TargetUserInfo");
+                    chatHub.server.sendByUid(targetUserInfo.Uid, $('.txtWhisperSend', $this).val());
+                    showMessage($this, $("#hidNickName").data("CurrentUserInfo"), $('.txtWhisperSend', $this).val());
                 }
             }).on("click", ".whisperWindow", function (e) {
                 setZIndex($(this));
+            }).on("click", ".closeWindow", function () {
+                $(this).parents(".whisperWindow").hide();
             });
 
             //设置层级  显示在最前
@@ -304,12 +354,8 @@
             //显示私聊消息
             chatHub.client.sendNewMessage = function (userInfo, msg) {
                 var userInfoObj = JSON.parse(userInfo);
-                showWhisperWindow(userInfoObj);
                 //显示消息
-                var $whisperWindow = $("#" + userInfoObj.Uid);
-
-                $('.message-content ul', $whisperWindow).append('<li><strong>' + userInfoObj.NickName + '</strong>: ' + msg + '</li>');
-                $('.message-content', $whisperWindow).scrollTop($('.message-content', $whisperWindow).outerHeight());
+                showWhisperWindow(userInfoObj, msg);
             }
         });
     </script>
