@@ -1,0 +1,317 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+
+    <script src="~/scripts/jquery.min.js"></script>
+    <script src="~/scripts/jquery.signalR-2.2.0.min.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei';
+            font-size: 16px;
+        }
+
+        #userInfoList {
+            cursor: pointer;
+            text-decoration-style: none;
+        }
+
+        .clearFloat {
+            width: 100%;
+            clear: both;
+        }
+
+        /*群聊*/
+        #groupChatWindow {
+            width: 1000px;
+            height: 800px;
+            background: #FFDEAD;
+            padding: 1px;
+            overflow: hidden;
+        }
+
+            #groupChatWindow .groupChat-header {
+                width: 100%;
+                border-bottom: 1px #d4cdcd solid;
+            }
+
+            #groupChatWindow .headerImage {
+                width: 60px;
+                height: 60px;
+                margin: 10px;
+                border: 1px #d4cdcd solid;
+                border-radius: 5px;
+                float: left;
+            }
+
+            #groupChatWindow .groupChatName {
+                font-size: 24px;
+                font-weight: bold;
+            }
+
+            #groupChatWindow .groupChat-content {
+                float: left;
+                width: 100%;
+                margin-left: -200px;
+            }
+
+            #groupChatWindow .message-content {
+                height: 400px;
+                border-bottom: 1px #d4cdcd solid;
+                overflow-y: scroll;
+            }
+
+                #groupChatWindow .message-content ul li {
+                    line-height: 30px;
+                }
+
+            #groupChatWindow .message-content-send {
+                width: 100%;
+                border-bottom: 1px #d4cdcd solid;
+            }
+
+            #groupChatWindow .groupChat-userList {
+                float: right;
+                width: 200px;
+                height: 100%;
+                display: inline-block;
+                overflow: scroll;
+            }
+
+            #groupChatWindow .txtGroupChatSend {
+                width: 100%;
+                margin: 0px;
+                padding: 3px;
+                border: 0px;
+                background: #FFDEAD;
+                line-height: 20px;
+                letter-spacing: 1px;
+                font-family: 'Microsoft YaHei';
+                outline: none;
+            }
+
+        /*私聊*/
+        .whisperWindow {
+            width: 800px;
+            height: 600px;
+            background: #FFDEAD;
+            position: fixed;
+            padding: 1px;
+            overflow: hidden;
+            top: 50px;
+            right: 50px;
+            display: none;
+            border: 1px #FFB90F solid;
+            border-radius: 5px;
+        }
+
+            .whisperWindow .whisper-header {
+                width: 100%;
+                border-bottom: 1px #d4cdcd solid;
+            }
+
+            .whisperWindow .headerImage {
+                width: 60px;
+                height: 60px;
+                margin: 10px;
+                border: 1px #d4cdcd solid;
+                border-radius: 5px;
+                float: left;
+            }
+
+            .whisperWindow .nickName {
+                font-size: 24px;
+                font-weight: bold;
+                float: left;
+            }
+
+            .whisperWindow .message-content {
+                width: 100%;
+                height: 400px;
+                border-bottom: 1px #d4cdcd solid;
+                overflow-y: scroll;
+            }
+
+                .whisperWindow .message-content ul li {
+                    line-height: 30px;
+                }
+
+            .whisperWindow .message-content-send {
+                width: 100%;
+                border-bottom: 1px #d4cdcd solid;
+            }
+
+            .whisperWindow .txtWhisperSend {
+                width: 100%;
+                margin: 0px;
+                padding: 3px;
+                border: 0px;
+                background: #FFDEAD;
+                line-height: 20px;
+                letter-spacing: 1px;
+                font-family: 'Microsoft YaHei';
+                outline: none;
+            }
+    </style>
+</head>
+<body>
+    <div>
+        <div class="page-header"></div>
+    </div>
+    <input type="text" id="message" />
+    <input type="button" id="sendmessage" value="Send" />
+    <input type="text" id="hidNickName" />
+
+
+    <!--群聊窗口-->
+    <div id="groupChatWindow">
+        <div class="groupChat-header">
+            <div class="headerImage">头像</div>
+            <div class="groupChatName"></div>
+            <div class="clearFloat"></div>
+        </div>
+        <div>
+            <div class="groupChat-content">
+                <div class="message-content">
+                    <ul id="messageList"></ul>
+                </div>
+                <div class="message-content-send">
+                    <textarea id="txtGroupChatSend" class="txtGroupChatSend" rows="3">fff</textarea>
+                </div>
+            </div>
+            <div class="groupChat-userList">
+                <ul id="userInfoList"></ul>
+            </div>
+
+            <div class="clearFloat"></div>
+        </div>
+        <div class="groupChat-bottom">
+        </div>
+    </div>
+
+    <!--私聊用户窗口-->
+    <div id="whisperWindows"></div>
+    <!--私聊用户窗口模板-->
+    <div class="whisperWindowTemplate">
+        <div class="whisper-header">
+            <div class="headerImage">头像</div>
+            <div class="nickName"></div>
+            <div class="clearFloat"></div>
+        </div>
+        <div class="whisper-content">
+            <div class="message-content"><ul></ul></div>
+            <div class="message-content-send">
+                <textarea class="txtWhisperSend" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="whisper-bottom">
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        $(function () {
+            var chatHub = $.connection.chatHub;
+
+            //将推送的消息显示在页面上
+            chatHub.client.addNewMessage = function (name, msg) {
+                $('.message-content ul').append('<li><strong>' + name
+                    + '</strong>: ' + msg + '</li>');
+                $('.message-content').scrollTop($('.message-content').outerHeight());
+            }
+
+            //刷新页面用户列表
+            chatHub.client.refreshUserInfoList = function (userInfos) {
+                var userInfosJson = JSON.parse(userInfos);
+                var strHtml = "";
+                for (var index in userInfosJson) {
+                    strHtml += '<li uid="' + userInfosJson[index].Uid + '">' + userInfosJson[index].NickName + '</li>';
+                }
+
+                $("#userInfoList").html(strHtml);
+
+                $("#userInfoList li").each(function (i, item) {
+                    $(this).data("userInfo", userInfosJson[i]);
+                });
+            }
+
+            // Get the user name and store it to prepend to messages.
+            $('#hidNickName').val(prompt('Enter your name:', ''));
+            //Set initial focus to message input box.
+            $('#message').focus();
+
+            //启动SignalR
+            $.connection.hub.start().done(function () {
+                //设置昵称信息
+                chatHub.server.setUserInfoToNickName($("#hidNickName").val());
+            });
+
+            //绑定 用户列表项 的单击事件
+            $("#userInfoList").on("dblclick", "li", function () {
+                //弹出用户私聊窗口
+                showWhisperWindow($(this).data("userInfo"));
+            });
+
+            //判断是否私聊窗口是否开启  如果没有开启则创建一个聊天窗口
+            function showWhisperWindow(userInfo) {
+                var $whisperWindow = $("#" + userInfo.Uid);
+                if ($whisperWindow.length <= 0) {
+                    $("<div></div>", { "id": userInfo.Uid, "class": "whisperWindow" }).css({ "top": $("#whisperWindows").children().length * 100, "right": $("#whisperWindows").children().length * 100 }).append($(".whisperWindowTemplate").html()).appendTo($("#whisperWindows"));
+                    $("#" + userInfo.Uid)
+                        .data("userInfo", userInfo);
+                    $(".nickName", $("#" + userInfo.Uid)).text(userInfo.NickName);
+                }
+
+                $("#" + userInfo.Uid + ".whisperWindow").show();
+                setZIndex($whisperWindow);
+                $('.txtWhisperSend', $whisperWindow).focus();
+            }
+
+            //回车发送消息
+            $("#whisperWindows").on("keydown", ".whisperWindow", function (e) {
+                var $this = $(this);
+                if (e.keyCode == 13 && $(".txtWhisperSend", $this).is(":focus")) {
+                    var userInfo = $this.data("userInfo");
+                    chatHub.server.sendByUid(userInfo.Uid, $('.txtWhisperSend', $this).val());
+                    $('.message-content ul', $this).append('<li><strong>' + $("#hidNickName").val() + '</strong>: ' + $('.txtWhisperSend', $this).val() + '</li>');
+                    $('.message-content', $this).scrollTop($('.message-content', $this).outerHeight());
+                    $('.txtWhisperSend', $this).val('').focus();
+                }
+            }).on("click", ".whisperWindow", function (e) {
+                setZIndex($(this));
+            });
+
+            //设置层级  显示在最前
+            function setZIndex($Taget) {
+                var $whisperWindowChilds = $("#whisperWindows .whisperWindow");
+                var zIndex = 0;
+                $whisperWindowChilds.each(function () {
+                    var _zIndex = $(this).css("zIndex") || 0;
+                    if (zIndex < _zIndex) {
+                        zIndex = $(this).css("zIndex");
+                    }
+                });
+                $Taget.css("zIndex", ++zIndex);
+            }
+
+            //显示私聊消息
+            chatHub.client.sendNewMessage = function (userInfo, msg) {
+                var userInfoObj = JSON.parse(userInfo);
+                showWhisperWindow(userInfoObj);
+                //显示消息
+                var $whisperWindow = $("#" + userInfoObj.Uid);
+
+                $('.message-content ul', $whisperWindow).append('<li><strong>' + userInfoObj.NickName + '</strong>: ' + msg + '</li>');
+                $('.message-content', $whisperWindow).scrollTop($('.message-content', $whisperWindow).outerHeight());
+            }
+        });
+    </script>
+</body>
+</html>

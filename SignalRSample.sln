@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sample-1 实时提醒", "Sample-1 实时提醒", "{2A62FB46-EAA5-42F8-BBE2-38FBB3D410F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-1", "Sample-1\Sample-1.csproj", "{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sample-2", "Sample-2\Sample-2.csproj", "{6DF67413-16CA-413C-AF3B-3F90F422B493}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6DF67413-16CA-413C-AF3B-3F90F422B493}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6DF67413-16CA-413C-AF3B-3F90F422B493}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6DF67413-16CA-413C-AF3B-3F90F422B493}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6DF67413-16CA-413C-AF3B-3F90F422B493}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6C11A9E7-D4CE-40DE-9B7B-E0FD78922E76} = {2A62FB46-EAA5-42F8-BBE2-38FBB3D410F9}
+		{6DF67413-16CA-413C-AF3B-3F90F422B493} = {2A62FB46-EAA5-42F8-BBE2-38FBB3D410F9}
+	EndGlobalSection
+EndGlobal
